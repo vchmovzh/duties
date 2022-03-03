@@ -31,7 +31,13 @@ const Schedule: React.FC = () => {
         return duty.ranges.some(r => r.start === range.start && r.end === range.end)
     }
 
+    const isAvailable = (duty: Duty, range: DutyRange): boolean => {
+        return duty.available_at.some(r => r.start === range.start && r.end === range.end)
+    }
+
     const onDutyClick = (duty: Duty, range: DutyRange): void => {
+        if (!isAvailable(duty, range)) return
+
         dispatch(invertDuty({
             user_id: duty.user_id,
             range: range
@@ -65,7 +71,8 @@ const Schedule: React.FC = () => {
                                     UI_RANGES.map(dr => {
                                         return (
                                             <div key={`${dr.start}-${dr.end}`} onClick={() => onDutyClick(duty, dr)} className={classNames('w-6 flex br b--white bg-light-gray pointer', {
-                                                'bg-green': hasActiveDuty(duty, dr)
+                                                'bg-green': hasActiveDuty(duty, dr),
+                                                'bg-washed-red': !isAvailable(duty, dr),
                                             })}>
                                                 &nbsp;
                                             </div>

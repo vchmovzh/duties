@@ -8,7 +8,7 @@ export const apiGetDuties = (date: Date): Promise<Response> => {
     return fetch(`${BASE_URL}/duties/${format(date, DATE_API_FORMAT)}`, {
         method: 'GET',
         headers: {
-          'content-type': 'application/json;charset=UTF-8',
+          'Content-Type': 'application/json',
         },
       })
 }
@@ -17,7 +17,7 @@ export const apiInvertDuty = (user_id: string, {start, end}: DutyRange): Promise
     return fetch(`${BASE_URL}/duties/invert-duty`, {
         method: 'POST',
         headers: {
-          'content-type': 'application/json;charset=UTF-8',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
             user_id,
