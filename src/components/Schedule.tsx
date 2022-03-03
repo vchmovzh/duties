@@ -2,20 +2,21 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../store/store'
 import { Duty } from '../types/duty.type'
-import {format} from 'date-fns'
+import {format, parse} from 'date-fns'
 import { DATE_INPUT_DATE_FORMAT, UI_RANGES } from '../util/constant'
 import classNames from 'classnames'
 import { DutyRange } from '../types/dutyRange.type'
-import { addRange, deleteRange } from '../store/reducers/scheduleSlice'
+import { fetchDuties, invertDuty } from '../store/reducers/scheduleThunk'
 
 const Schedule: React.FC = () => {
     const duties: Duty[] = useSelector((state: RootState) => state.schedule.duties)
+    const isLoading = useSelector((state: RootState) => state.schedule.isLoading)
     const dispatch: AppDispatch = useDispatch()
     const [date, setDate] = useState<string>(format(new Date(), DATE_INPUT_DATE_FORMAT))
 
     useEffect(() => {
-        
-    }, [])
+        dispatch(fetchDuties(parse(date, DATE_INPUT_DATE_FORMAT, new Date())))
+    }, [date])
 
     const onDateChanged = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const date = e.target.value
@@ -30,16 +31,11 @@ const Schedule: React.FC = () => {
         return duty.ranges.some(r => r.start === range.start && r.end === range.end)
     }
 
-    const invertDuty = (duty: Duty, range: DutyRange): void => {
-        if (hasActiveDuty(duty, range)) {
-            dispatch(deleteRange({
-                duty, range
-            }))
-        } else {
-            dispatch(addRange({
-                duty, range
-            }))
-        }
+    const onDutyClick = (duty: Duty, range: DutyRange): void => {
+        dispatch(invertDuty({
+            user_id: duty.user_id,
+            range: range
+        }))
     }
 
     return (
@@ -58,8 +54,8 @@ const Schedule: React.FC = () => {
                 })}
             </div>
             <div className='flex w-100 flex-column'>
-                {
-                    duties.map(duty => {
+                {   
+                    isLoading ? (<div className='tc w-100 pa3'>Завантажую...</div>) : duties.map(duty => {
                         return (
                             <div key={duty.user_id} className='flex w-100 bb b--white'>
                                 <div className="w-34 pv3 tc">
@@ -68,7 +64,7 @@ const Schedule: React.FC = () => {
                                 {
                                     UI_RANGES.map(dr => {
                                         return (
-                                            <div key={`${dr.start}-${dr.end}`} onClick={() => invertDuty(duty, dr)} className={classNames('w-6 flex br b--white bg-light-gray pointer', {
+                                            <div key={`${dr.start}-${dr.end}`} onClick={() => onDutyClick(duty, dr)} className={classNames('w-6 flex br b--white bg-light-gray pointer', {
                                                 'bg-green': hasActiveDuty(duty, dr)
                                             })}>
                                                 &nbsp;

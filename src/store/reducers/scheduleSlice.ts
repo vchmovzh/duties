@@ -1,47 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Duty } from '../../types/duty.type'
-import { DutyRange } from '../../types/dutyRange.type'
+import { fetchDuties, invertDuty } from './scheduleThunk'
 
 export interface ScheduleState {
     duties: Duty[]
+    isLoading: boolean
 }
 
 const initialState: ScheduleState = {
-    duties: [{
-        name: 'Іван Василь',
-        user_id: 1,
-        ranges: [{
-            start: 0,
-            end: 1
-        }, {
-            start: 5,
-            end: 7
-        }]
-    },
-    {
-        name: 'Гаррі Поттер',
-        user_id: 2,
-        ranges: [{
-            start: 16,
-            end: 19
-        }]
-    },
-    {
-        name: 'Олесик',
-        user_id: 3,
-        ranges: [{
-            start: 21,
-            end: 23
-        }]
-    },
-    {
-        name: 'Котик Братик',
-        user_id: 4,
-        ranges: [{
-            start: 10,
-            end: 13
-        }]
-    }],
+    duties: [],
+    isLoading: true
 }
 
 export const scheduleSlice = createSlice({
@@ -51,20 +19,34 @@ export const scheduleSlice = createSlice({
     setDuties: (state, action: PayloadAction<any[]>) => {
         state.duties = action.payload
     },
-    deleteRange: (state, action: PayloadAction<{duty: Duty, range: DutyRange}>) => {
-        const existingDuty = state.duties.find(d => d.user_id === action.payload.duty.user_id)
-        if (!existingDuty) return
-        existingDuty.ranges = existingDuty.ranges.filter(dr => dr.start !== action.payload.range.start && dr.end !== action.payload.range.end)
-    },
-    addRange: (state, action: PayloadAction<{duty: Duty, range: DutyRange}>) => {
-        const existingDuty = state.duties.find(d => d.user_id === action.payload.duty.user_id)
-        if (!existingDuty) return
-        existingDuty.ranges.push(action.payload.range)
+    setIsLoading: (state, action: PayloadAction<boolean>) => {
+        state.isLoading = action.payload
     }
   },
-  
+  extraReducers: (builder) => {
+      builder.addCase(fetchDuties.fulfilled, (state, action) => {
+          state.duties = action.payload.duties
+          state.isLoading = false
+      })
+
+      builder.addCase(fetchDuties.rejected, (state, action) => {
+        state.duties = []
+        state.isLoading = false
+      })
+
+      builder.addCase(invertDuty.fulfilled, (state, action) => {
+        const duty = state.duties.find(d => d.user_id === action.payload.user_id)
+        state.isLoading = false
+        if (!duty) return
+        duty.ranges = action.payload.ranges
+     })
+
+      builder.addCase(invertDuty.rejected, (state, action) => {
+        state.isLoading = false
+      })
+  } 
 })
 
-export const { setDuties, deleteRange, addRange } = scheduleSlice.actions
+export const { setDuties, setIsLoading } = scheduleSlice.actions
 
 export default scheduleSlice.reducer

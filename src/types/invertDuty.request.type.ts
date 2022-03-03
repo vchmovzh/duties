@@ -1,7 +1,6 @@
 import { DutyRange } from "./dutyRange.type";
 
-export type Duty = {
-    name: string
+export type InvertDutyRequest = {
     user_id: string
-    ranges: DutyRange[]
+    range: DutyRange
 }
