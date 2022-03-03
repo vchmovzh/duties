@@ -1,7 +1,7 @@
 import { format } from "date-fns"
 import { DutyRange } from "../types/dutyRange.type"
 
-const BASE_URL = 'http://drone-ds.pp.ua:8000'
+const BASE_URL = process.env.REACT_APP_API_BASE_URL
 const DATE_API_FORMAT = 'dd-MM-yyyy'
 
 export const apiGetDuties = (date: Date): Promise<Response> => {
